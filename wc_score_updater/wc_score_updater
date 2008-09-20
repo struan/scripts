@@ -1,0 +1,49 @@
+#!/usr/local/bin/perl
+
+use strict;
+use warnings;
+
+use LWP::Simple;
+use File::Pid;
+
+# our url
+my $url = 'http://newsimg.bbc.co.uk/sol/shared/bsp/hi/football/in_vision/html/in_vision1.stm';
+my $pidfile = '/home/struan/.wc_score_updater/wc_score_updater.pid';
+my $stopfile = '/home/struan/.wc_score_updater/stopchecks';
+my $message_sender = '/home/struan/bin/send_jabber';
+
+# do pidfile things
+my $pf = File::Pid->new( { file => $pidfile } );
+die "Already running" if $pf->running;
+my $pid = $pf->write;
+
+# and make sure pidfile is cleaned up...
+$SIG{TERM} = $SIG{KILL} = $SIG{INT} = \&handle_signal;
+
+my $scores = "";
+$\ = "\n";
+
+while (1) {
+    last if -e $stopfile;
+    my $content = get( $url );
+
+    $content =~ s/\n//gs;
+    my @scores = ( $content =~ /.*>(\s*[a-z& ]+\s+\d+\s*-\s*\d+\s+[a-z0-9\-& ]+)+\s+<.*/ig );
+
+    my $tmp_scores = "@scores";
+   
+    if ( $scores ne $tmp_scores ) {
+        $scores = $tmp_scores;
+        system "$message_sender '$scores'";
+    }
+
+    sleep(300);
+}
+
+sub handle_signal {
+    $pf->remove;
+    exit;
+}
+
+unlink $stopfile if -e $stopfile;
+$pf->remove;

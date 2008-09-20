@@ -1,0 +1,42 @@
+#!/usr/local/bin/perl
+
+use strict;
+use warnings;
+use HTML::TableExtract;
+use Text::Autoformat;
+
+use constant {
+    LOCATION    =>  0,
+    REPORT      =>  1,
+};
+
+my $roads = join( '|', split( ',',  shift) );
+
+my $html;
+
+{
+    local $/ = undef;
+    $html = <>;
+}
+
+my $t = HTML::TableExtract->new( headers => [ "Location", "Incident Report" ] );
+
+$t->parse( $html );
+
+my $output = "\n"; # we do this for neatness...
+foreach my $table ( $t->table_states ) {
+    foreach my $row ( $table->rows ) {
+        if ( $row->[LOCATION] =~ /\b($roads)\b/i ) {
+            my $road = $row->[LOCATION];
+            # put in space otherwise words get jammed together
+            $road =~ s/\n/ /gms;
+            $road =~ s/\s\s+/ /g;
+            my $desc = $row->[REPORT];
+            $desc =~ s/\n//gms;
+            $output .= autoformat( "$road |\n$desc\n", { right => 40 } );
+            $output .= '-' x 40 . "\n";
+        }
+    }
+}
+
+print $output;
