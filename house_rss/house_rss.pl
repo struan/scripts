@@ -82,6 +82,7 @@ foreach my $table ( $t->table_states ) {
         my $e = XML::Atom::Entry->new;
         $e->title( $text );
         $e->id( BASEHREF . $href );
+        $e->content( $text );
 
         my $l = XML::Atom::Link->new();
         $l->href( BASEHREF . $href );
