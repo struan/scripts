@@ -8,7 +8,7 @@ use LWP::UserAgent;
 use constant INTABLE => 1;
 use constant INROW   => 2;
 
-my $matches = 'cotic|soda|\bti\b|titanium';
+my $matches = 'cotic|soda|\bti\b|titanium|magura';
 
 my @content;
 
