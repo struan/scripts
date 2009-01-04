@@ -2,13 +2,23 @@
 
 use strict;
 use warnings;
+use Config::Simple;
 use MIME::Lite;
 use LWP::UserAgent;
 
 use constant INTABLE => 1;
 use constant INROW   => 2;
+use constant RCFILE  => "$ENV{ HOME }/.stwclassifiedsrc";   
 
-my $matches = 'cotic|soda|\bti\b|titanium|magura';
+my %conf;
+
+if ( -e RCFILE ) {
+    Config::Simple->import_from( RCFILE, \%conf );
+} else {
+    die "Missing config file: " . RCFILE . "\n";
+}
+
+my $matches = $conf{ matches };
 
 my @content;
 
