@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use 5.010;
 use Config::Simple;
 use MIME::Lite;
 use LWP::UserAgent;
@@ -35,7 +36,7 @@ my $status = 0;
 my %items;
 
 for ( @content ) {
-    if ( $status == INTABLE and /(topic.php[^"]*)"[^>]*>([^<]*(?:$matches)[^<]*)</i ) {
+    if ( $status == INTABLE and /(topic[^"]*)"[^>]*>([^<]*(?:$matches)[^<]*)</i ) {
         $items{ $2 } = $1;
     } elsif ( $status == INTABLE and /<\/table>/ ) {
         last;
