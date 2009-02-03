@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use 5.010;
 use Config::Simple;
 use MIME::Lite;
 use LWP::UserAgent;
@@ -23,7 +24,7 @@ my $matches = $conf{ matches };
 my @content;
 
 my $u = new LWP::UserAgent;
-my $r = $u->get( 'http://singletrackworld.com/forum/list.php?f=5&menu=16' );
+my $r = $u->get( 'http://singletrackworld.com/forum/forum.php?id=3' );
 
 unless ( $r->is_success ) {
     die "Failed to get forum: " . $r->code . ": " . $r->message;
@@ -35,11 +36,11 @@ my $status = 0;
 my %items;
 
 for ( @content ) {
-    if ( $status == INTABLE and /(read.php[^"]*)&PHPSE[^"]*"[^>]*>([^<]*(?:$matches)[^<]*)</i ) {
+    if ( $status == INTABLE and /(topic[^"]*)"[^>]*>([^<]*(?:$matches)[^<]*)</i ) {
         $items{ $2 } = $1;
     } elsif ( $status == INTABLE and /<\/table>/ ) {
         last;
-    } elsif ( /PhorumListTable/ ) {
+    } elsif ( /table id="latest"/ ) {
         $status = INTABLE;
     }
 }
