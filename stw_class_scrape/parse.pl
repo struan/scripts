@@ -24,7 +24,7 @@ my $matches = $conf{ matches };
 my @content;
 
 my $u = new LWP::UserAgent;
-my $r = $u->get( 'http://singletrackworld.com/forum/forum.php?id=3' );
+my $r = $u->get( 'http://singletrackworld.com/forum/forum/classifieds' );
 
 unless ( $r->is_success ) {
     die "Failed to get forum: " . $r->code . ": " . $r->message;
