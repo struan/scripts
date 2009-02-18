@@ -30,11 +30,14 @@ my $e = ($f->entries())[0];
 my $title = $e->title;
 my $body = $e->content->body;
 
-my $time = ( $title =~ /(\d+) GMT/ )[0];
-my $desc = ( $title =~ /:\W+(\D+)\.\s\d+\x{b0}C/ )[0];
-my $temp = ( $title =~ /(\d+)\x{b0}C/ )[0];
-my $wind_d = ( $body =~ /Wind Direction: (\w+)/ )[0];
-my $wind_s = ( $body =~ /Wind Speed: (\d+)/ )[0];
+my $time    = ( $title =~ /(\d+) GMT/ )[0];
+my $desc    = ( $title =~ /:\W+(\D+)\.\s\d+\x{b0}C/ )[0];
+my $temp    = ( $title =~ /(\d+)\x{b0}C/ )[0];
+my $wind_d  = ( $body =~ /Wind Direction: (\w+)/ )[0];
+my $wind_s  = ( $body =~ /Wind Speed: (\d+)/ )[0];
+
+# sometimes there's no description so indicate this
+$desc     ||= 'N/A';
 
 my $msg = "weather at $time was $desc, $temp C, $wind_d at $wind_s mph\n"; 
 my $fh;
