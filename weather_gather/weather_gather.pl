@@ -30,7 +30,7 @@ my $e = ($f->entries())[0];
 my $title = $e->title;
 my $body = $e->content->body;
 
-my $time    = ( $title =~ /(\d+) GMT/ )[0];
+my $time    = ( $title =~ /(\d+:\d+) (?:GMT|BST)/ )[0];
 my $desc    = ( $title =~ /:\W+(\D+)\.\s\d+\x{b0}C/ )[0];
 my $temp    = ( $title =~ /(\d+)\x{b0}C/ )[0];
 my $wind_d  = ( $body =~ /Wind Direction: (\w+)/ )[0];
