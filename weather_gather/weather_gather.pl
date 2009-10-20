@@ -1,4 +1,4 @@
-#!/bin/env perl5.10.0
+#!/usr/local/bin/perl5.10.1
 
 use Modern::Perl;
 use HTML::TableExtract;
@@ -7,7 +7,7 @@ use LWP::Simple;
 use Getopt::Long;                                                               
 use AppConfig qw( :argcount :expand );                                          
                                                                                 
-my ( $save, $time, $summary );                                                                       
+my ( $debug, $save, $time, $summary );                                                                       
                                                                                 
 my $config_file = _get_conf_file();                                             
                                                                                 
@@ -24,14 +24,14 @@ my @time = localtime;
 my $file = $ENV{ 'HOME' } . '/.weather.dat';                                    
 $file = $c->savefile if $c->savefile;
                                                                                 
-GetOptions( "save" => \$save, "time=s" => \$time );
+GetOptions( "save" => \$save, "time=s" => \$time, "debug" => \$debug );
 
 my $uri = 'http://www.metoffice.gov.uk/weather/uk/ta/leuchars_latest_weather.html';
 my $content = get( $c->uri );
 
 my $t = HTML::TableExtract->new(
             keep_html => 1,
-            depth => 2,
+            depth => 0,
             count => 1,
         );
 
@@ -52,7 +52,9 @@ foreach my $table ( $t->tables ) {
     }
 }
 
-if ( $save ) {                                                                  
+if ( $debug ) {
+    say $summary;
+} elsif ( $save ) {                                                                  
     open( my $fh, ">$file" ) or die "Failed to open file: $!\n";                                               
     print $fh join( '', @time[ 5, 4, 3 ] ) . "\n";
     print $fh $summary;                                                             
