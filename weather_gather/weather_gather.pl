@@ -42,7 +42,7 @@ foreach my $table ( $t->tables ) {
         next unless $row->[1] and $row->[1] =~ /$time/;
 
         my ( $weather )     = ( $row->[2] =~ /alt="([^"]*)"/ );
-        my ( $temp )        = ( $row->[3] =~ /(\d+\.\d+)/ );
+        my ( $temp )        = ( $row->[3] =~ /(-?\d+\.\d+)/ );
         my ( $wind_dir )    = ( $row->[4] =~ /(\w+)/ );
         my ( $wind_speed )  = ( $row->[5] =~ /(\d+)/ );
         
