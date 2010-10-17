@@ -10,6 +10,8 @@ use XML::Atom::Entry;
 use Encode;
 
 use constant BASEHREF => 'http://www.f-kspc.co.uk/propertiesforsale/';
+use constant MAXPRICE => 500000;
+use constant MINPRICE => 200000;
 
 our $DEBUG = 0;
 
@@ -43,7 +45,7 @@ $r = $m->submit_form(
     form_number =>  1,
     fields      =>  {
         Area    =>  'St Andrews',
-        Price   =>  '270000',
+        Price   =>  'All',
     }
 );
 
@@ -67,6 +69,11 @@ foreach my $table ( $t->table_states ) {
 
         # on rows we care about first cell is empty
         shift @$row;
+
+        my $price = $row->[ 3 ];
+        $price =~ s/[^0-9]//g;
+
+        next if ( $price > MAXPRICE or $price < MINPRICE );
 
         my $text = join( ' : ', @$row );
         $text =~ s/[\r\n]//g;
