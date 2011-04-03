@@ -86,13 +86,15 @@ foreach my $table ( $t->table_states ) {
         ($href) = ( $href =~ /href="([^"]+)/ );
         $href =~ s/ /%20/;
 
+        my $uri = BASEHREF . $href;
+
         my $e = XML::Atom::Entry->new;
         $e->title( $text );
-        $e->id( BASEHREF . $href );
+        $e->id( $uri );
         $e->content( $text );
 
         my $l = XML::Atom::Link->new();
-        $l->href( BASEHREF . $href );
+        $l->href( $uri );
 
         $l->href( makeashorterlink( $l->href ) );
 
