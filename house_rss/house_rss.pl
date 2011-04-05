@@ -91,7 +91,6 @@ foreach my $table ( $t->table_states ) {
         my $r = $m->get( $uri );
         if ( $m->success() ) {
             my $house_details = $r->content;
-            warn $house_details;
             $text .= ' (Under Offer)' if $house_details =~ /underoffer/;
         }
         # lets not hammer the server eh?
