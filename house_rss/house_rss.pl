@@ -92,6 +92,7 @@ foreach my $table ( $t->table_states ) {
         if ( $m->success() ) {
             my $house_details = $r->content;
             $text .= ' (Under Offer)' if $house_details =~ /underoffer/;
+            $text .= ' (Sold)' if $house_details =~ /sold.gif/;
         }
         # lets not hammer the server eh?
         sleep( 1 );
