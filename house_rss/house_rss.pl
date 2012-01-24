@@ -9,7 +9,11 @@ use XML::Atom::Feed;
 use XML::Atom::Entry;
 use Encode;
 
-use constant BASEHREF => 'http://www.f-kspc.co.uk/propertiesforsale/';
+# the URI changed but as we used it as an id we need to 
+# stick to the old one for that to enable the comparison
+# stuff to work in rss2mail. This is a kludge :(
+use constant BASEHREF => 'http://www.f-kspc.co.uk/';
+use constant BASEID => 'http://www.f-kspc.co.uk/propertiesforsale/';
 use constant MAXPRICE => 550000;
 use constant MINPRICE => 200000;
 
@@ -20,7 +24,7 @@ $f->title( 'Houses for Colva and Stru' );
 
 my $m = WWW::Mechanize->new();
 
-my $r = $m->get( 'http://www.f-kspc.co.uk/propertiesforsale/propertysearch.cfm' );
+my $r = $m->get( 'http://www.f-kspc.co.uk/property-search.cfm' );
 
 die $r->message unless $m->success();
 sleep(1);
@@ -33,18 +37,7 @@ $r = $m->submit_form(
         SL      =>  'S',
         DR      =>  'L',
         PSort   =>  'Price_DESC',
-    }
-);
-
-die $r->message unless $m->success();
-sleep(1);
-
-print STDERR $r->content if $DEBUG;
-
-$r = $m->submit_form(
-    form_number =>  1,
-    fields      =>  {
-        Area    =>  'St Andrews',
+        SArea    =>  'St Andrews',
         Price   =>  'All',
     }
 );
@@ -55,23 +48,21 @@ my $html = $r->content;
 
 my $t = HTML::TableExtract->new(
             keep_html => 1,
-            depth => 2,
-            count => 6,
+            depth => 1,
+            count => 2,
         );
 
 $t->parse( $html );
 
 foreach my $table ( $t->table_states ) {
     foreach my $row ( $table->rows ) {
-        my $href = $row->[1];
+        my $href = $row->[0];
 
-        next unless $row->[ 0 ] and $row->[ 0 ] =~ /bullet/;
-
-        # on rows we care about first cell is empty
-        shift @$row;
+        next unless $row->[ 0 ] and $row->[ 0 ] =~ /margin-left: 10p/;
 
         my $price = $row->[ 3 ];
         $price =~ s/[^0-9]//g;
+        $price = int( $price );
 
         next if ( $price >= MAXPRICE or $price <= MINPRICE );
 
@@ -87,6 +78,7 @@ foreach my $table ( $t->table_states ) {
         $href =~ s/ /%20/;
 
         my $uri = BASEHREF . $href;
+        my $id  = BASEID . $href;
 
         my $r = $m->get( $uri );
         if ( $m->success() ) {
@@ -99,7 +91,7 @@ foreach my $table ( $t->table_states ) {
 
         my $e = XML::Atom::Entry->new;
         $e->title( $text );
-        $e->id( $uri );
+        $e->id( $id );
         $e->content( $text );
 
         my $l = XML::Atom::Link->new();
