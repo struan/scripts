@@ -83,7 +83,7 @@ foreach my $table ( $t->table_states ) {
         my $r = $m->get( $uri );
         if ( $m->success() ) {
             my $house_details = $r->content;
-            $text .= ' (Under Offer)' if $house_details =~ /underoffer/;
+            $text .= ' (Under Offer)' if $house_details =~ /under\s*offer/i;
             $text .= ' (Sold)' if $house_details =~ /sold.gif/;
         }
         # lets not hammer the server eh?
