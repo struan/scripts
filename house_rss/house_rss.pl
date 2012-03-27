@@ -62,6 +62,7 @@ foreach my $table ( $t->table_states ) {
 
         my $price = $row->[ 3 ];
         $price =~ s/[^0-9]//g;
+        $price ||= 0;
         $price = int( $price );
 
         next if ( $price >= MAXPRICE or $price <= MINPRICE );
