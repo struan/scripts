@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use WWW::Mechanize;
 use Web::Scraper;
 use Config::Simple;
 
@@ -21,3 +22,17 @@ if ( -e $config_file ) {
 } else {
     die "Failed to find config file [ $config_file ]";
 }
+
+my $m = WWW::Mechanize->new;
+my $url = $conf->param('url') || 'http://www.fifedirect.org.uk/env_bins/index.cfm';
+
+$m->get( $url );
+$m->submit_form(
+    with_fields => {
+        postcode => $conf->param( 'postcode' )
+    }
+);
+
+$m->follow_link( text_regex => qr/@{[ $conf->param( 'address' ) ]}/ );
+
+my $content = $m->content;
