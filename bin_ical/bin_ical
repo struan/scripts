@@ -10,6 +10,7 @@ use WWW::Mechanize;
 use Web::Scraper;
 use Config::Simple;
 use Data::ICal::Entry::Event;
+use Data::ICal::Entry::Alarm::Display;
 
 my $config_file;
 
@@ -53,13 +54,22 @@ my $calendar = Data::ICal->new();
 
 for my $dates ( @{ $collections->{dates} } ) {
     next unless $dates->{info}->[1];
-    my $todo = Data::ICal::Entry::Event->new;
+    my $event = Data::ICal::Entry::Event->new;
     my $epoch = str2time( $dates->{info}->[0] ) - ( 60 * 60 * 5 );
-    $todo->add_properties(
-        summary => sprintf( 'Take out %s', $dates->{info}->[1] ),
+    my $description = sprintf( 'Take out %s', $dates->{info}->[1] );
+    $event->add_properties(
+        summary => $description,
         dtstart => Date::ICal->new( epoch => $epoch )->ical,
     );
-    $calendar->add_entry( $todo );
+    $calendar->add_entry( $event );
+
+    my $alarm = Data::ICal::Entry::Alarm::Display->new();
+    $alarm->add_properties(
+        description => $description,
+        trigger => [ Date::ICal->new( epoch => $epoch )->ical, { value => 'DATE-TIME' } ],
+    );
+
+    $event->add_entry( $alarm );
 }
 
 print $calendar->as_string;
