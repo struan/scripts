@@ -1,0 +1,23 @@
+#/bin/env perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+use Web::Scraper;
+use Config::Simple;
+
+my $config_file;
+
+my $res = GetOptions(
+"config=s" => \$config_file
+);
+
+$config_file = $ENV{HOME} . '/.bin_icalrc' unless $config_file;
+
+my $conf;
+
+if ( -e $config_file ) {
+    $conf = Config::Simple->new( $config_file );
+} else {
+    die "Failed to find config file [ $config_file ]";
+}
