@@ -36,3 +36,16 @@ $m->submit_form(
 $m->follow_link( text_regex => qr/@{[ $conf->param( 'address' ) ]}/ );
 
 my $content = $m->content;
+
+my $cal_scraper = scraper {
+    process 'table.results > tr', "dates[]" => scraper {
+        process 'td.resultData', 'info[]' => 'TEXT';
+    }
+};
+
+my $collections = $cal_scraper->scrape( $content );
+
+for my $dates ( @{ $collections->{dates} } ) {
+    next unless $dates->{info}->[1];
+    printf( "date: %s, type: %s\n", $dates->{info}->[0], $dates->{info}->[1] );
+}
