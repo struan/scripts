@@ -2,10 +2,14 @@
 
 use strict;
 use warnings;
+use Date::ICal;
+use Data::ICal;
+use Date::Parse;
 use Getopt::Long;
 use WWW::Mechanize;
 use Web::Scraper;
 use Config::Simple;
+use Data::ICal::Entry::Event;
 
 my $config_file;
 
@@ -45,7 +49,17 @@ my $cal_scraper = scraper {
 
 my $collections = $cal_scraper->scrape( $content );
 
+my $calendar = Data::ICal->new();
+
 for my $dates ( @{ $collections->{dates} } ) {
     next unless $dates->{info}->[1];
-    printf( "date: %s, type: %s\n", $dates->{info}->[0], $dates->{info}->[1] );
+    my $todo = Data::ICal::Entry::Event->new;
+    my $epoch = str2time( $dates->{info}->[0] ) - ( 60 * 60 * 5 );
+    $todo->add_properties(
+        summary => sprintf( 'Take out %s', $dates->{info}->[1] ),
+        dtstart => Date::ICal->new( epoch => $epoch )->ical,
+    );
+    $calendar->add_entry( $todo );
 }
+
+print $calendar->as_string;
