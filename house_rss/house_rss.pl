@@ -18,7 +18,7 @@ use constant BASEHREF => 'http://www.f-kspc.co.uk/';
 use constant BASEID => 'http://www.f-kspc.co.uk/propertiesforsale/';
 use constant MAXPRICE => 550000;
 use constant MINPRICE => 200000;
-use constant SAVILS_RSS => 'http://residentialsearch.savills.co.uk/rss/property-for-sale/scotland/fife/st-andrews/ky16/0/0/1000000000/5.0/hi/gbp/1';
+use constant SAVILS_RSS => 'http://search.savills.com/rss/property-for-sale/scotland/fife/ky16/gbp';
 
 our $DEBUG = 0;
 
@@ -113,49 +113,51 @@ foreach my $table ( $t->table_states ) {
 }
 
 my $s = XML::Feed->parse( URI->new( SAVILS_RSS ) );
-foreach my $entry ( $s->entries ) {
-        my ( $price, $text ) = ( $entry->content->body =~ /^([^.]*)\.(.*)$/ );
-        my $orig_price = $price;
+if ( $s && $s->can( 'entries' ) ) {
+    foreach my $entry ( $s->entries ) {
+            my ( $price, $text ) = ( $entry->content->body =~ /^([^.]*)\.(.*)$/ );
+            my $orig_price = $price;
 
-        $price =~ s/&#\d+;//;
-        $price =~ s/[^0-9]//g;
-        $price ||= 0;
-        $price = int( $price );
+            $price =~ s/&#\d+;//;
+            $price =~ s/[^0-9]//g;
+            $price ||= 0;
+            $price = int( $price );
 
-        next if ( $price >= MAXPRICE or $price <= MINPRICE );
+            next if ( $price >= MAXPRICE or $price <= MINPRICE );
 
-        $text =~ s/[\r\n]//g;
-        $text =~ s/<[^>]+>//g;
-        $text = "$text : $orig_price";
+            $text =~ s/[\r\n]//g;
+            $text =~ s/<[^>]+>//g;
+            $text = "$text : $orig_price";
 
-        my $uri = $entry->link;
-        my $id  = $entry->link;
+            my $uri = $entry->link;
+            my $id  = $entry->link;
 
-        my $r = $m->get( $uri );
-        if ( $m->success() ) {
-            my $house_details = $r->content;
-            $text .= ' (Under Offer)' if $house_details =~ /under\s*offer/i;
-            $text .= ' (Sold)' if $house_details =~ /sold.gif/;
-        }
-        # lets not hammer the server eh?
-        sleep( 1 );
+            my $r = $m->get( $uri );
+            if ( $m->success() ) {
+                my $house_details = $r->content;
+                $text .= ' (Under Offer)' if $house_details =~ /under\s*offer/i;
+                $text .= ' (Sold)' if $house_details =~ /sold.gif/;
+            }
+            # lets not hammer the server eh?
+            sleep( 1 );
 
-        my $e = XML::Atom::Entry->new;
-        $e->title( $entry->title . " : $price" );
-        $e->id( $id );
-        $e->content( $text );
+            my $e = XML::Atom::Entry->new;
+            $e->title( $entry->title . " : $price" );
+            $e->id( $id );
+            $e->content( $text );
 
-        my $l = XML::Atom::Link->new();
-        $l->href( $uri );
+            my $l = XML::Atom::Link->new();
+            $l->href( $uri );
 
-        $l->href( makeashorterlink( $l->href ) );
+            $l->href( makeashorterlink( $l->href ) );
 
-        $l->type('text/html');
-        $l->rel('alternate');
+            $l->type('text/html');
+            $l->rel('alternate');
 
-        $e->add_link( $l );
-        
-        $f->add_entry( $e );
+            $e->add_link( $l );
+            
+            $f->add_entry( $e );
+    }
 }
 
 print $f->as_xml;
