@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use URI;
+use Web::Scraper;
 use WWW::Mechanize;
 use WWW::Shorten 'TinyURL';
 use HTML::TableExtract;
@@ -19,6 +20,7 @@ use constant BASEID => 'http://www.f-kspc.co.uk/propertiesforsale/';
 use constant MAXPRICE => 550000;
 use constant MINPRICE => 200000;
 use constant SAVILS_RSS => 'http://search.savills.com/rss/property-for-sale/scotland/fife/ky16/gbp';
+use constant PM_URI => 'http://www.primelocation.com/for-sale/property/fife/st-andrews/newest/?page_size=50';
 
 our $DEBUG = 0;
 
@@ -158,6 +160,48 @@ if ( $s && $s->can( 'entries' ) ) {
             
             $f->add_entry( $e );
     }
+}
+
+my $houses = scraper {
+    process "ul.listing-results > li", "houses[]" => scraper {
+        process "a.pl-list-res-address", address => 'TEXT',
+        process "strong.pl-list-res-attr", details => 'TEXT',
+        process "a.pl-list-res-address", uri => '@href',
+        process "a.pl-list-res-price", price => 'TEXT',
+    }
+};
+
+my $res = $houses->scrape( URI->new( PM_URI) );
+
+for my $house ( @{$res->{houses}} ) {
+    my $orig_price = $house->{price};
+    my $price = $orig_price;
+
+    $price =~ s/&#\d+;//;
+    $price =~ s/[^0-9]//g;
+    $price ||= 0;
+    $price = int( $price );
+
+    next if ( $price >= MAXPRICE or $price <= MINPRICE );
+
+    my $text = sprintf( "%s, %s: %s", $house->{address}, $house->{details}, $orig_price );
+    my $uri = $house->{uri}->as_string;
+
+    my $e = XML::Atom::Entry->new;
+    $e->title( $house->{address} . " : $price" );
+    $e->id( $uri );
+    $e->content( $text );
+
+    my $l = XML::Atom::Link->new();
+    $l->href( $uri );
+
+    $l->href( makeashorterlink( $l->href ) );
+
+    $l->type('text/html');
+    $l->rel('alternate');
+
+    $e->add_link( $l );
+    $f->add_entry( $e );
 }
 
 print $f->as_xml;
